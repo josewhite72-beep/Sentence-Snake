@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sentence-snake-v1';
+const CACHE_NAME = 'sentence-snake-v2';
 const urlsToCache = [
   './',
   './index3.html',
