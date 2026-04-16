@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>Sentence Snake 🐍 - PWA Educativa</title>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --primary: #059669;
+      --accent: #fbbf24;
+      --text: #f1f5f9;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; touch-action: manipulation; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px;
+    }
+    
+    /* LOGIN OVERLAY */
+    #loginOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); z-index: 100; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: var(--card); padding: 20px; border-radius: 12px;
+      text-align: center; width: 90%; max-width: 300px;
+      border: 2px solid var(--accent);
+    }
+    .login-box input {
+      width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none;
+      font-size: 1rem; text-align: center;
+    }
+    .login-box button {
+      width: 100%; padding: 12px; background: var(--primary); color: white;
+      border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer;
+    }
+
+    /* MAIN UI */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; max-width: 400px; margin-bottom: 10px;
+    }
+    .student-badge {
+      background: var(--card); padding: 4px 8px; border-radius: 20px;
+      border: 1px solid var(--border); font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
+    }
+    .export-btn {
+      background: var(--accent); color: #0f172a; border: none; padding: 6px 12px;
+      border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+    }
+
+    h1 { color: var(--accent); font-size: 1.4rem; margin-bottom: 8px; }
+    
+    .controls-top { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
+    select, button {
+      padding: 8px; border: 2px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text); font-size: 0.85rem; cursor: pointer;
+    }
+    button:active { transform: scale(0.96); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); font-weight: bold; }
+    
+    #levelIndicator { color: var(--accent); font-weight: bold; margin: 6px 0; font-size: 1rem; }
+
+    .game-wrapper {
+      position: relative; background: #020617; border-radius: 12px;
+      padding: 10px; width: 100%; max-width: 360px; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .objective-box {
+      background: var(--card); padding: 8px; border-radius: 8px; margin-bottom: 8px; text-align: center;
+    }
+    .objective-text { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+    
+    .canvas-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; background: #020617; }
+    
+    /* Word Overlay on Canvas */
+    .word-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .grid-word {
+      position: absolute; font-weight: bold; font-size: 13px; padding: 3px 6px;
+      border-radius: 6px; text-align: center; transform: translate(-50%, -50%);
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .grid-word.active { background: var(--primary); color: white; box-shadow: 0 0 10px #10b981; }
+    .grid-word.inactive { background: #334155; color: #64748b; }
+    .grid-word.collected { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+
+    .sentence-tracker {
+      margin: 10px 0; padding: 8px; background: var(--card); border-radius: 8px;
+      display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 36px;
+    }
+    .tracker-word {
+      padding: 4px 8px; border-radius: 6px; font-size: 0.9rem;
+      border: 2px dashed var(--border); color: #64748b;
+    }
+    .tracker-word.filled { background: var(--primary); border-style: solid; color: white; }
+
+    .d-pad {
+      display: grid; grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(2, 54px);
+      gap: 6px; justify-content: center; margin: 10px 0;
+    }
+    .d-btn {
+      width: 54px; height: 54px; border-radius: 12px; background: var(--card);
+      border: 3px solid var(--border); color: var(--accent); font-size: 1.4rem;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .d-btn:active { background: var(--border); }
+    .d-btn:nth-child(1) { grid-column: 2; grid-row: 1; }
+    .d-btn:nth-child(2) { grid-column: 1; grid-row: 2; }
+    .d-btn:nth-child(3) { grid-column: 2; grid-row: 2; }
+    .d-btn:nth-child(4) { grid-column: 3; grid-row: 2; }
+
+    .speed-selector { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+    .speed-btn { flex: 1; padding: 8px; text-align: center; }
+    .speed-btn.active { background: var(--primary); border-color: #10b981; }
+
+    .action-buttons { display: flex; gap: 8px; margin: 10px 0; }
+    .action-buttons button { flex: 1; padding: 10px; font-weight: bold; }
+    #continueBtn { background: var(--accent); border-color: var(--accent); color: #0f172a; }
+
+    .success-banner {
+      background: linear-gradient(90deg, #059669, #10b981); color: white;
+      text-align: center; padding: 12px; border-radius: 8px; margin: 10px 0;
+      display: none; animation: popIn 0.3s ease;
+    }
+    .success-banner.show { display: block; }
+    .success-banner h2 { font-size: 1.2rem; margin-bottom: 4px; }
+    .speak-icon { font-size: 1.5rem; animation: pulse 1s infinite; }
+    
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+    details.teacher-panel {
+      background: var(--card); border-radius: 8px; padding: 10px; margin-top: 10px;
+      width: 100%; max-width: 360px;
+    }
+    summary { cursor: pointer; color: var(--accent); font-weight: bold; }
+    textarea {
+      width: 100%; border: 2px dashed var(--border); border-radius: 8px; padding: 8px;
+      margin: 8px 0; background: #0f172a; color: var(--text); font-family: inherit;
+      resize: vertical; min-height: 60px;
+    }
+    .teacher-btns { display: flex; gap: 8px; }
+    .teacher-btns button { flex: 1; padding: 8px; font-size: 0.85rem; }
+
+    @media (max-width: 360px) {
+      .canvas-container { width: 280px; height: 280px; }
+      .d-pad { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 48px); }
+      .d-btn { width: 48px; height: 48px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2>🐍 Sentence Snake</h2>
+      <p>Ingresa tu nombre para guardar tu progreso</p>
+      <input type="text" id="studentNameInput" placeholder="Tu Nombre" autocomplete="off">
+      <button id="loginBtn">🚀 JUGAR</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="student-badge">
+      👤 <span id="currentStudentName">Estudiante</span>
+    </div>
+    <button class="export-btn" id="exportBtn">📥 Guardar Progreso</button>
+  </div>
+
+  <h1>Sentence Snake 🐍</h1>
+  
+  <div class="controls-top">
+    <select id="gradeSelect">
+      <option value="">Grado</option>
+      <option value="2">Grade 2</option>
+      <option value="3">Grade 3</option>
+      <option value="4">Grade 4</option>
+      <option value="5">Grade 5</option>
+      <option value="6">Grade 6</option>
+    </select>
+    <select id="scenarioSelect">
+      <option value="">Escenario</option>
+      <option value="1">Scenario 1</option>
+      <option value="2">Scenario 2</option>
+    </select>
+    <button id="loadCurriculum" class="btn-primary">📥 CARGAR</button>
+  </div>
+
+  <div id="levelIndicator">🌟 NIVEL 1 / 5</div>
+
+  <div class="game-wrapper">
+    <div class="objective-box">
+      <div style="font-size: 0.8rem; color: #94a3b8;">🎯 OBJETIVO</div>
+      <div class="objective-text" id="targetSentence">...</div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="300" height="300"></canvas>
+      <div class="word-overlay" id="wordOverlay"></div>
+    </div>
+
+    <div class="sentence-tracker" id="sentenceTracker"></div>
+
+    <div class="d-pad">
+      <button class="d-btn" data-dir="up">▲</button>
+      <button class="d-btn" data-dir="left">◀</button>
+      <button class="d-btn" data-dir="down">▼</button>
+      <button class="d-btn" data-dir="right">▶</button>
+    </div>
+
+    <div class="speed-selector">
+      <button class="speed-btn" data-speed="slow">🐢 BAJO</button>
+      <button class="speed-btn active" data-speed="medium">⚡ MEDIO</button>
+      <button class="speed-btn" data-speed="fast">🔥 ALTO</button>
+    </div>
+
+    <div class="action-buttons">
+      <button id="resetLevel">🔄 REINICIAR</button>
+      <button id="continueBtn" disabled>▶ Continuar</button>
+    </div>
+
+    <div class="success-banner" id="successBanner">
+      <h2>🎉 ¡ORACIÓN COMPLETA!</h2>
+      <div class="speak-icon">🗣️ Escuchando...</div>
+    </div>
+  </div>
+
+  <details class="teacher-panel">
+    <summary>👩‍ DOCENTE: una oración por línea</summary>
+    <textarea id="teacherInput" placeholder="Escribe oraciones aquí..."></textarea>
+    <div class="teacher-btns">
+      <button id="loadCustom">📚 CARGAR</button>
+      <button id="resetExamples">⭐ RESTABLECER</button>
+    </div>
+  </details>
+
+  <script>
+    //  AUDIO SYSTEM (Synthesized - No external files needed)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      
+      if (type === 'pop') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'bounce') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(500, now + 0.1);
+        osc.frequency.setValueAtTime(800, now + 0.2);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      }
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop previous
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85; // Slower for learning
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    //  STUDENT & PROGRESS SYSTEM
+    let currentStudent = null;
+    let allStudents = JSON.parse(localStorage.getItem('snake_students')) || {};
+
+    function loginStudent(name) {
+      name = name.trim();
+      if (!name) return;
+      currentStudent = name;
+      if (!allStudents[currentStudent]) {
+        allStudents[currentStudent] = { completed: [], lastPlayed: new Date().toISOString() };
+      }
+      document.getElementById('currentStudentName').textContent = currentStudent;
+      document.getElementById('loginOverlay').style.display = 'none';
+      saveAllStudents();
+      initGame();
+    }
+
+    function saveAllStudents() {
+      localStorage.setItem('snake_students', JSON.stringify(allStudents));
+    }
+
+    function recordCompletion(grade, scenario, levelIdx) {
+      if (!currentStudent) return;
+      const id = `G${grade}-S${scenario}-L${levelIdx}`;
+      if (!allStudents[currentStudent].completed.includes(id)) {
+        allStudents[currentStudent].completed.push(id);
+      }
+      allStudents[currentStudent].lastPlayed = new Date().toISOString();
+      saveAllStudents();
+    }
+
+    document.getElementById('loginBtn').onclick = () => {
+      loginStudent(document.getElementById('studentNameInput').value);
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      if (!currentStudent) return alert('Inicia sesión primero');
+      const data = allStudents[currentStudent];
+      const text = `REPORTE DE PROGRESO - SNAKE SNAKE\nEstudiante: ${currentStudent}\nÚltima sesión: ${data.lastPlayed}\n\nNiveles Completados:\n${data.completed.join('\n')}`;
+      
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SnakeSnake_${currentStudent.replace(/\s+/g, '_')}.txt`;
+      a.click();
+    };
+
+    // 🐍 GAME CONSTANTS & STATE
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const GRID = 12;
+    const CELL = canvas.width / GRID;
+    
+    let state = {
+      snake: [{x: 6, y: 6}],
+      dir: {x: 0, y: 0},
+      nextDir: {x: 0, y: 0},
+      words: [],
+      targetWords: [],
+      collectedCount: 0,
+      level: 1,
+      sentences: [],
+      speed: "medium",
+      loop: null,
+      status: "idle",
+      grade: "",
+      scenario: ""
+    };
+
+    const SPEEDS = { slow: 220, medium: 140, fast: 90 };
+
+    // 📦 CURRICULUM DATA
+    const CURRICULUM = {
+      "2": {
+        "1": ["Yesterday Was Wednesday", "Today Is Friday", "We Go to School on Monday", "Saturday Is the Weekend", "Sunday Is for Family"],
+        "2": ["That Is a Big Book", "That Is a Small Brown Bag", "My Pencil Case Is Blue", "The Teacher Has a Red Marker", "We Share Our Supplies"]
+      },
+      "3": {
+        "1": ["I Am at School", "I Am at the Market", "She Is at the Park", "He Is at the Library", "We Are at the Bus Stop"],
+        "2": ["Can I Have a Pencil", "Sorry I Cant Help You", "May I Borrow Your Eraser", "Please Pass the Glue", "Thank You for Your Help"]
+      },
+      "4": {
+        "1": ["This Is My Favorite Store", "It Is the Best Park", "The Bakery Smells Good", "My Friend Lives Nearby", "We Walk to School Together"],
+        "2": ["The Tomatoes Grow Quickly", "These Plants Are from Panama", "We Water the Flowers Daily", "The Sun Helps Plants Grow", "I Like to Plant Seeds"]
+      },
+      "5": {
+        "1": ["First I Cut the Paper", "Lets Make a Poster", "Next We Glue the Pieces", "Then We Add Colors", "Finally We Show Our Work"],
+        "2": ["We Are Sweeping the Floors", "Lets Arrange the Chairs", "I Wipe the Whiteboard", "She Organizes the Books", "We Keep Our Room Clean"]
+      },
+      "6": {
+        "1": ["Our Community Is Diverse", "Everyone Is Welcome at Our School", "Students Come from Different Places", "We Learn About Many Cultures", "Respect Makes Our School Strong"],
+        "2": ["Who Will Bring the Broom", "Lets Make a Cleaning Schedule", "I Can Clean the Windows", "She Will Empty the Trash", "We Work Together on Friday"]
+      }
+    };
+
+    const els = {
+      grade: document.getElementById('gradeSelect'),
+      scenario: document.getElementById('scenarioSelect'),
+      loadCurr: document.getElementById('loadCurriculum'),
+      levelInd: document.getElementById('levelIndicator'),
+      target: document.getElementById('targetSentence'),
+      tracker: document.getElementById('sentenceTracker'),
+      wordOverlay: document.getElementById('wordOverlay'),
+      success: document.getElementById('successBanner'),
+      speedBtns: document.querySelectorAll('.speed-btn'),
+      reset: document.getElementById('resetLevel'),
+      cont: document.getElementById('continueBtn'),
+      teacherIn: document.getElementById('teacherInput'),
+      loadCust: document.getElementById('loadCustom'),
+      resetEx: document.getElementById('resetExamples'),
+      dBtns: document.querySelectorAll('.d-btn')
+    };
+
+    function initGame() {
+      if (!state.sentences.length) state.sentences = ["The dog runs fast", "I like to eat pizza"];
+      setupControls();
+      startLevel();
+    }
+
+    function setupControls() {
+      els.dBtns.forEach(b => b.onclick = () => setDir(b.dataset.dir));
+      document.addEventListener('keydown', e => {
+        const map = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'};
+        if (map[e.key]) { e.preventDefault(); setDir(map[e.key]); }
+      });
+      els.speedBtns.forEach(b => b.onclick = () => {
+        els.speedBtns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        state.speed = b.dataset.speed;
+        if (state.status === 'playing') { stopLoop(); startLoop(); }
+      });
+      els.loadCurr.onclick = () => {
+        if (!els.grade.value || !els.scenario.value) return alert('Selecciona grado y escenario');
+        loadCurriculum(els.grade.value, els.scenario.value);
+      };
+      els.reset.onclick = startLevel;
+      els.cont.onclick = nextLevel;
+      els.loadCust.onclick = () => {
+        const lines = els.teacherIn.value.trim().split('\n').filter(l => l.trim());
+        if (!lines.length) return alert('Escribe oraciones');
+        state.sentences = lines; state.level = 1; state.grade = "custom"; state.scenario = "teacher";
+        startLevel();
+      };
+      els.resetEx.onclick = () => {
+        els.teacherIn.value = (CURRICULUM[state.grade]?.[state.scenario] || state.sentences).join('\n');
+      };
+    }
+
+    function setDir(dir) {
+      if (state.status !== 'playing') return;
+      const dirs = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
+      const nd = dirs[dir];
+      if (state.dir.x + nd.x !== 0 || state.dir.y + nd.y !== 0) state.nextDir = nd;
+    }
+
+    function loadCurriculum(g, s) {
+      state.grade = g; state.scenario = s;
+      state.sentences = [...CURRICULUM[g][s]];
+      state.level = 1; 
+      startLevel();
+    }
+
+    function startLevel() {
+      state.status = 'playing';
+      state.snake = [{x: 6, y: 6}];
+      state.dir = {x:0, y:0}; state.nextDir = {x:0, y:0};
+      state.collectedCount = 0;
+      
+      const sentence = state.sentences[(state.level - 1) % state.sentences.length];
+      state.targetWords = sentence.split(' ');
+      state.targetSentence = sentence;
+      
+      els.target.textContent = sentence;
+      els.levelInd.textContent = `🌟 NIVEL ${state.level} / ${state.sentences.length}`;
+      els.success.classList.remove('show');
+      els.cont.disabled = true;
+      
+      renderTracker();
+      spawnWords();
+      draw();
+      stopLoop(); startLoop();
+    }
+
+    function renderTracker() {
+      els.tracker.innerHTML = '';
+      state.targetWords.forEach((w, i) => {
+        const span = document.createElement('span');
+        span.className = `tracker-word ${i < state.collectedCount ? 'filled' : ''}`;
+        span.textContent = w;
+        els.tracker.appendChild(span);
+      });
+    }
+
+    function spawnWords() {
+      els.wordOverlay.innerHTML = '';
+      state.words = [];
+      const isSequential = parseInt(state.grade) <= 3 || state.grade === "custom";
+      const occupied = new Set(['6,6']);
+      
+      const getPos = () => {
+        let p;
+        do { p = {x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID)}; }
+        while (occupied.has(`${p.x},${p.y}`));
+        occupied.add(`${p.x},${p.y}`);
+        return p;
+      };
+
+      if (isSequential) {
+        const p = getPos();
+        createWordEl(state.targetWords[0], p.x, p.y, true);
+        state.words.push({text: state.targetWords[0], x: p.x, y: p.y, active: true});
+      } else {
+        const shuffled = [...state.targetWords].sort(() => Math.random() - 0.5);
+        shuffled.forEach(w => {
+          const p = getPos();
+          const isActive = (w === state.targetWords[0]);
+          createWordEl(w, p.x, p.y, isActive);
+          state.words.push({text: w, x: p.x, y: p.y, active: isActive});
+        });
+      }
+    }
+
+    function createWordEl(text, gx, gy, active) {
+      const el = document.createElement('div');
+      el.className = `grid-word ${active ? 'active' : 'inactive'}`;
+      el.textContent = text;
+      el.style.left = `${(gx + 0.5) * CELL}px`;
+      el.style.top = `${(gy + 0.5) * CELL}px`;
+      els.wordOverlay.appendChild(el);
+    }
+
+    function updateWordDisplay() {
+      const isSeq = parseInt(state.grade) <= 3 || state.grade === "custom";
+      if (isSeq) {
+        const nextWord = state.targetWords[state.collectedCount];
+        const p = {x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID)};
+        createWordEl(nextWord, p.x, p.y, true);
+        state.words.push({text: nextWord, x: p.x, y: p.y, active: true});
+      } else {
+        const nextTarget = state.targetWords[state.collectedCount];
+        state.words.forEach(w => {
+          if (w.text === nextTarget && !w.collected) {
+            w.active = true;
+            const el = Array.from(els.wordOverlay.children).find(e => e.textContent === w.text && !e.classList.contains('collected'));
+            if (el) el.className = 'grid-word active';
+          }
+        });
+      }
+    }
+
+    function startLoop() { state.loop = setInterval(gameStep, SPEEDS[state.speed]); }
+    function stopLoop() { clearInterval(state.loop); }
+
+    function gameStep() {
+      if (state.status !== 'playing') return;
+      state.dir = {...state.nextDir};
+      if (state.dir.x === 0 && state.dir.y === 0) return;
+
+      const head = {...state.snake[0]};
+      head.x += state.dir.x;
+      head.y += state.dir.y;
+
+      if (head.x < 0 || head.x >= GRID || head.y < 0 || head.y >= GRID) {
+        playSound('bounce'); // Feedback sonoro
+        state.snake = [{x:6,y:6}]; state.dir={x:0,y:0}; state.nextDir={x:0,y:0};
+        draw(); return;
+      }
+
+      state.snake.unshift(head);
+      
+      const hitWord = state.words.find(w => w.x === head.x && w.y === head.y && w.active && !w.collected);
+      if (hitWord) {
+        hitWord.collected = true;
+        state.collectedCount++;
+        playSound('pop'); // Feedback sonoro
+        renderTracker();
+        
+        const el = Array.from(els.wordOverlay.children).find(e => e.textContent === hitWord.text && !e.classList.contains('collected'));
+        if (el) el.classList.add('collected');
+
+        if (state.collectedCount >= state.targetWords.length) {
+          completeLevel();
+        } else {
+          updateWordDisplay();
+        }
+      } else {
+        state.snake.pop();
+      }
+      draw();
+    }
+
+    function completeLevel() {
+      state.status = 'completed';
+      stopLoop();
+      playSound('win'); // Fanfarria
+      els.success.classList.add('show');
+      els.cont.disabled = false;
+      
+      // Pronunciación
+      speak(state.targetSentence);
+      
+      // Guardar progreso
+      if(state.grade !== "custom") {
+        recordCompletion(state.grade, state.scenario, state.level);
+      }
+      
+      draw(); 
+    }
+
+    function nextLevel() {
+      state.level++;
+      if (state.level > state.sentences.length) state.level = 1;
+      startLevel();
+    }
+
+    function draw() {
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= GRID; i++) {
+        ctx.beginPath(); ctx.moveTo(i*CELL, 0); ctx.lineTo(i*CELL, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i*CELL); ctx.lineTo(canvas.width, i*CELL); ctx.stroke();
+      }
+
+      state.snake.forEach((seg, i) => {
+        ctx.fillStyle = state.status === 'completed' ? '#10b981' : (i === 0 ? '#22c55e' : '#16a34a');
+        ctx.fillRect(seg.x*CELL + 1, seg.y*CELL + 1, CELL - 2, CELL - 2);
+        if (i === 0) { 
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(seg.x*CELL + 4, seg.y*CELL + 4, 3, 3);
+          ctx.fillRect(seg.x*CELL + CELL - 7, seg.y*CELL + 4, 3, 3);
+        }
+      });
+    }
+  </script>
+
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW error:', err));
+      });
+    }
+
+    // Detect installability and show custom prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show custom install button if needed
+    });
+  </script>
+</body>
+</html>
