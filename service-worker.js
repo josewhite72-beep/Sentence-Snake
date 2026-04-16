@@ -1,8 +1,9 @@
-const CACHE_NAME = 'sentence-snake-v2';
+const CACHE_NAME = 'sentence-snake-v1';
 const urlsToCache = [
   './',
-  './index3.html',
-  './manifest.json'
+  './index.html',
+  './manifest.json',
+  './icon-192.png'
 ];
 
 self.addEventListener('install', event => {
