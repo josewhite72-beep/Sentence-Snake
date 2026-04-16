@@ -2,7 +2,7 @@
   "name": "Sentence Snake - Aprende Inglés",
   "short_name": "Sentence Snake",
   "description": "Juego educativo para aprender inglés construyendo oraciones",
-  "start_url": "./index3.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
