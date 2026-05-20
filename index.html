@@ -191,8 +191,6 @@
     </select>
     <select id="scenarioSelect">
       <option value="">Escenario</option>
-      <option value="1">Scenario 1</option>
-      <option value="2">Scenario 2</option>
     </select>
     <button id="loadCurriculum" class="btn-primary">📥 CARGAR</button>
   </div>
@@ -368,27 +366,111 @@
 
     const SPEEDS = { slow: 220, medium: 140, fast: 90 };
 
-    // 📦 CURRICULUM DATA
+    // 📦 CURRICULUM DATA — Official MEDUCA Panama English Programme (AOA)
+    const SCENARIOS_META = {
+      "2": [
+        { n:1, title:"All Week Long!",           themes:["Today Is Tuesday","Yesterday Was Wednesday"] },
+        { n:2, title:"School Life Adventures",   themes:["That Is a Big Book","That Is a Small Brown Bag"] },
+        { n:3, title:"All About My Body",        themes:["This Is My Hand","Touch Your Nose"] },
+        { n:4, title:"Exploring My Community",   themes:["There Is a Park","We Go to the Market"] },
+        { n:5, title:"Panama's Animals",         themes:["Look at the Frog","The Toucan Is Beautiful"] },
+        { n:6, title:"The Mola",                 themes:["The Mola Is Colorful","We Love the Mola"] },
+        { n:7, title:"It's Time to Eat!",        themes:["I Like Milk","Let's Eat Together"] },
+        { n:8, title:"My Evening Routine",       themes:["I Brush My Teeth","Time for Bed"] }
+      ],
+      "3": [
+        { n:1, title:"Places I Can Go",          themes:["I Am at School","I Am at the Market"] },
+        { n:2, title:"A Polite Request",         themes:["Can I Have a Pencil","Sorry I Cannot Help You"] },
+        { n:3, title:"Discovering Our Classroom",themes:["What Is in Your Bag","The Book Is on the Table"] },
+        { n:4, title:"This Beautiful Day",       themes:["The Weather Is Nice","We Are Outside"] },
+        { n:5, title:"I Can Connect with Nature",themes:["Look at the Birds","Let's Protect Our Animals"] },
+        { n:6, title:"The Beautiful Mola",       themes:["The Mola Is Colorful","We Love the Mola"] },
+        { n:7, title:"It's Time to Eat",         themes:["I Need a Fork","Let's Eat Together"] },
+        { n:8, title:"My Evening Routine",       themes:["I Brush My Teeth","Time for Bed"] }
+      ],
+      "4": [
+        { n:1, title:"A Walk in the Neighborhood", themes:["This Is My Favorite","It Is the Best"] },
+        { n:2, title:"Helping in the Garden",       themes:["The Tomatoes Grow Quickly","These Plants Are from Panama"] },
+        { n:3, title:"Shopping at the Market",      themes:["How Much Is the Pineapple","I Need Five Plantains"] },
+        { n:4, title:"Visiting the Panama Canal",   themes:["The Vessels Are Big","The Canal Is One Hundred Ten Years Old"] },
+        { n:5, title:"Conservation Morning Noon and Night", themes:["We Recycle Plastic Bottles Every Day","Turn Off the Lights at Night"] },
+        { n:6, title:"Recycling for Our World",     themes:["Recycling Helps Our Animals","I Will Use Less Water"] },
+        { n:7, title:"The Beautiful Mola",           themes:["Molas Have Many Shapes","Molas Tell Stories"] },
+        { n:8, title:"Our Traditional Style of Dress", themes:["The Montuno Is Important","We Wear a Pollera at Festivals"] }
+      ],
+      "5": [
+        { n:1, title:"Following Instructions at School", themes:["First I Cut the Paper","Let's Make a Poster"] },
+        { n:2, title:"Taking Care of Our Classroom",     themes:["We Are Sweeping the Floors","Let's Arrange the Chairs"] },
+        { n:3, title:"The Local Farm Stand",             themes:["I Need to Buy Fruit","How Much Does It Cost"] },
+        { n:4, title:"Helping Around the House",         themes:["I Have to Feed the Cat","She Has to Do Her Homework"] },
+        { n:5, title:"Conservation Morning Noon and Night", themes:["We Should Save Water in the Morning","Let's Turn Off Lights at Night"] },
+        { n:6, title:"Recycling for Our World",          themes:["We Recycle Plastic Bottles Every Day","Recycling Helps Our Animals"] },
+        { n:7, title:"The Beautiful Mola",               themes:["Kuna Women Make Molas","The Mola Represents Kuna Culture"] },
+        { n:8, title:"Our Traditional Style of Dress",   themes:["She Is Wearing a Pollera","The Montuno Is for Men"] }
+      ],
+      "6": [
+        { n:1, title:"Reporting from the School",        themes:["Our Community Is Diverse","Everyone Is Welcome at Our School"] },
+        { n:2, title:"We Should Clean on Friday",        themes:["Who Will Bring the Broom","Let's Make a Cleaning Schedule"] },
+        { n:3, title:"I Need a Lot of Books",            themes:["How Do I Find a Book in the Library","We Can Donate Old Books"] },
+        { n:4, title:"Jobs in My Community",             themes:["The Doctor Helps Sick People","The Farmer Grows Our Food"] },
+        { n:5, title:"Conservation Morning Noon and Night", themes:["We Should Not Waste Water","Turn Off the Lights to Save Energy"] },
+        { n:6, title:"Recycling for Our World",          themes:["We Separate Paper and Plastic","Recycling Protects Our Planet"] },
+        { n:7, title:"The Beautiful Mola",               themes:["The Mola Has Many Colors","It Represents Our Identity"] },
+        { n:8, title:"Our Traditional Style of Dress",   themes:["The Pollera Is Panama's National Dress","Men Wear the Montuno with Pride"] }
+      ]
+    };
+
+    // Sentences per scenario (Theme 1 sentences then Theme 2 sentences = 8 per scenario)
     const CURRICULUM = {
       "2": {
-        "1": ["Yesterday Was Wednesday", "Today Is Friday", "We Go to School on Monday", "Saturday Is the Weekend", "Sunday Is for Family"],
-        "2": ["That Is a Big Book", "That Is a Small Brown Bag", "My Pencil Case Is Blue", "The Teacher Has a Red Marker", "We Share Our Supplies"]
+        "1": ["Today Is Tuesday","Yesterday Was Wednesday","Tomorrow Is Thursday","Monday Is the First Day","Friday Is the Last School Day","Saturday Is the Weekend","Sunday Is for Family","We Go to School on Monday"],
+        "2": ["That Is a Big Book","That Is a Small Brown Bag","My Pencil Case Is Blue","The Teacher Has a Red Marker","We Share Our Supplies","This Is a Heavy Backpack","I Have a New Eraser","The Ruler Is on the Desk"],
+        "3": ["This Is My Hand","Touch Your Nose","My Eyes Are Brown","I Have Two Ears","This Is My Mouth","Point to Your Head","My Feet Are Small","Wash Your Hands Please"],
+        "4": ["There Is a Park Near My House","We Go to the Market on Saturday","The School Is on My Street","I See a Library","The Bus Stop Is Here","There Is a Bakery Near School","My Friend Lives Nearby","We Walk to the Store Together"],
+        "5": ["Look at the Frog","The Toucan Is Beautiful","Sloths Live in Panama","I See a Butterfly","The Parrot Is Green","This Snake Is Long","Frogs Live near Water","Animals Live in the Forest"],
+        "6": ["The Mola Is Colorful","We Love the Mola","Molas Have Many Colors","The Mola Is Beautiful","She Makes a Mola","Molas Come from Panama","The Mola Has Patterns","I Like the Mola"],
+        "7": ["I Like Milk","Let's Eat Together","I Am Hungry","Pass the Rice Please","The Food Is Delicious","I Drink Water Every Day","We Eat Lunch at Noon","My Favorite Food Is Rice"],
+        "8": ["I Brush My Teeth","Time for Bed","I Wash My Face at Night","I Put on My Pajamas","Good Night Everyone","I Sleep Eight Hours","I Wake Up Early","I Feel Rested in the Morning"]
       },
       "3": {
-        "1": ["I Am at School", "I Am at the Market", "She Is at the Park", "He Is at the Library", "We Are at the Bus Stop"],
-        "2": ["Can I Have a Pencil", "Sorry I Cant Help You", "May I Borrow Your Eraser", "Please Pass the Glue", "Thank You for Your Help"]
+        "1": ["I Am at School","I Am at the Market","She Is at the Park","He Is at the Library","We Are at the Bus Stop","They Are at the Clinic","My Teacher Is at School","The Children Are at the Playground"],
+        "2": ["Can I Have a Pencil","Sorry I Cannot Help You","May I Borrow Your Eraser","Please Pass the Glue","Thank You for Your Help","Excuse Me Can I Sit Here","Can I Use Your Scissors","Of Course You Can"],
+        "3": ["What Is in Your Bag","The Book Is on the Table","My Notebook Is in My Bag","The Pencil Is under the Chair","Where Is the Ruler","Put the Book on the Shelf","The Eraser Is next to the Pencil","My Bag Is on the Floor"],
+        "4": ["The Weather Is Nice","We Are Outside","It Is Sunny Today","The Sky Is Blue","I Can Feel the Breeze","It Is a Beautiful Day","We Play Outside When It Is Sunny","I Love Sunny Days"],
+        "5": ["Look at the Birds","Let's Protect Our Animals","The Hummingbird Is Tiny","Butterflies Are Beautiful","We Must Not Hunt Animals","Animals Need Our Help","Trees Are Home to Animals","We Love Nature"],
+        "6": ["The Mola Is Colorful","We Love the Mola","The Mola Has Many Colors","It Is a Beautiful Design","Molas Come from the Kuna People","Each Mola Tells a Story","I Want to Learn about Molas","Molas Are Important in Panama"],
+        "7": ["I Need a Fork","Let's Eat Together","The Food Is Hot","Please Pass the Salt","I Am Very Hungry","We Eat Rice and Chicken","The Soup Is Delicious","I Drink Juice with My Lunch"],
+        "8": ["I Brush My Teeth before Bed","Time for Bed Everyone","I Read a Book before Sleeping","I Say Goodnight to My Family","Sleep Is Important for Health","I Dream When I Sleep","I Wake Up Feeling Good","My Routine Helps Me Stay Healthy"]
       },
       "4": {
-        "1": ["This Is My Favorite Store", "It Is the Best Park", "The Bakery Smells Good", "My Friend Lives Nearby", "We Walk to School Together"],
-        "2": ["The Tomatoes Grow Quickly", "These Plants Are from Panama", "We Water the Flowers Daily", "The Sun Helps Plants Grow", "I Like to Plant Seeds"]
+        "1": ["This Is My Favorite Store","It Is the Best Park","The Bakery Smells Good","My Friend Lives Nearby","We Walk to School Together","This Is the Best Neighborhood","I Love My Community","The Plaza Is Beautiful"],
+        "2": ["The Tomatoes Grow Quickly","These Plants Are from Panama","We Water the Flowers Daily","The Sun Helps Plants Grow","I Like to Plant Seeds","Plants Need Water and Sun","The Garden Looks Beautiful","We Pick the Vegetables Together"],
+        "3": ["How Much Is the Pineapple","I Need Five Plantains","The Mangoes Are Fresh","Do You Have Tomatoes","I Would Like Some Onions","How Much Does This Cost","I Will Buy Three Oranges","The Market Has Fresh Food"],
+        "4": ["The Vessels Are Big","The Canal Is One Hundred Ten Years Old","Ships Cross the Panama Canal","The Canal Connects Two Oceans","Panama Is Famous for Its Canal","The Locks Open for the Ships","Workers Built the Canal Long Ago","The Canal Is Important for Trade"],
+        "5": ["We Recycle Plastic Bottles Every Day","Turn Off the Lights at Night","We Save Water in Our Home","Do Not Waste Electricity","We Walk to Save Fuel","Recycling Helps the Planet","I Turn Off the Tap after Washing","Every Small Action Helps Nature"],
+        "6": ["Recycling Helps Our Animals","I Will Use Less Water","We Separate Trash at Home","Paper Can Be Recycled","Plastic Bottles Can Be Reused","We Keep Our School Clean","A Clean Environment Is Healthy","Let's Take Care of Our World"],
+        "7": ["Molas Have Many Shapes","Molas Tell Stories","The Colors Are Very Bright","Kuna Women Sew Molas by Hand","Each Mola Is Unique","Molas Show Nature and Animals","I Think Molas Are Beautiful","Molas Are a Symbol of Panama"],
+        "8": ["The Montuno Is Important","We Wear a Pollera at Festivals","The Pollera Is the National Dress","Men Wear the Montuno with Pride","Traditional Dress Shows Our Culture","Panama Has Beautiful Traditional Clothes","We Dance in Traditional Dress","I Am Proud of My Culture"]
       },
       "5": {
-        "1": ["First I Cut the Paper", "Lets Make a Poster", "Next We Glue the Pieces", "Then We Add Colors", "Finally We Show Our Work"],
-        "2": ["We Are Sweeping the Floors", "Lets Arrange the Chairs", "I Wipe the Whiteboard", "She Organizes the Books", "We Keep Our Room Clean"]
+        "1": ["First I Cut the Paper","Let's Make a Poster","Next We Glue the Pieces","Then We Add Colors","Finally We Show Our Work","Follow the Instructions Carefully","First Read the Steps","We Work Together on the Project"],
+        "2": ["We Are Sweeping the Floors","Let's Arrange the Chairs","I Wipe the Whiteboard","She Organizes the Books","We Keep Our Room Clean","Everyone Has a Cleaning Job","He Mops the Floor","A Clean Classroom Helps Us Learn"],
+        "3": ["I Need to Buy Fruit","How Much Does It Cost","The Bananas Are Very Fresh","Do You Have Papayas Today","I Would Like a Dozen Eggs","The Vendor Has Many Vegetables","Fresh Food Is Healthy","I Buy Food at the Farm Stand"],
+        "4": ["I Have to Feed the Cat","She Has to Do Her Homework","He Has to Clean His Room","We Have to Help at Home","I Have to Water the Plants","She Has to Wash the Dishes","Everyone Has Responsibilities","Helping at Home Is Important"],
+        "5": ["We Should Save Water in the Morning","Let's Turn Off Lights at Night","Close the Tap When Brushing Teeth","Use Both Sides of the Paper","Walk Short Distances to Save Fuel","Conservation Starts at Home","We Can Make a Difference","Small Habits Help Our Planet"],
+        "6": ["We Recycle Plastic Bottles Every Day","Recycling Helps Our Animals","Separate Your Trash at Home","Glass Can Be Recycled Too","Reduce Reuse Recycle","We Buy Products with Less Packaging","Recycling Saves Energy","Let's Keep Our Community Clean"],
+        "7": ["Kuna Women Make Molas","The Mola Represents Kuna Culture","Molas Have Colorful Layers of Fabric","Each Design Has a Special Meaning","Molas Are Made by Hand","The Mola Shows Plants and Animals","Kuna Art Is Known Worldwide","I Admire the Skill of Mola Makers"],
+        "8": ["She Is Wearing a Pollera","The Montuno Is for Men","Traditional Clothes Connect Us to Our Past","The Pollera Has Beautiful Embroidery","We Wear Traditional Dress at Festivals","The Montuno Includes a Hat and Pants","Traditional Dress Makes Us Feel Proud","Panama's Traditions Are Special"]
       },
       "6": {
-        "1": ["Our Community Is Diverse", "Everyone Is Welcome at Our School", "Students Come from Different Places", "We Learn About Many Cultures", "Respect Makes Our School Strong"],
-        "2": ["Who Will Bring the Broom", "Lets Make a Cleaning Schedule", "I Can Clean the Windows", "She Will Empty the Trash", "We Work Together on Friday"]
+        "1": ["Our Community Is Diverse","Everyone Is Welcome at Our School","Students Come from Different Places","We Learn about Many Cultures","Respect Makes Our School Strong","Diversity Makes Us Better","We Celebrate Our Differences","Our School Is a Happy Place"],
+        "2": ["Who Will Bring the Broom","Let's Make a Cleaning Schedule","I Can Clean the Windows","She Will Empty the Trash","We Work Together on Friday","Everyone Helps Keep School Clean","He Sweeps the Hallway","A Clean School Is a Healthy School"],
+        "3": ["How Do I Find a Book in the Library","We Can Donate Old Books","The Library Has Many Sections","Return Books on Time Please","I Love Reading New Books","Books Help Us Learn and Grow","The Librarian Helps Us Find Books","Reading Opens Doors to New Worlds"],
+        "4": ["The Doctor Helps Sick People","The Farmer Grows Our Food","Teachers Help Students Learn","Police Officers Keep Us Safe","Firefighters Protect Our Community","Every Job Is Important","Workers Make Our Community Better","I Want to Help My Community Too"],
+        "5": ["We Should Not Waste Water","Turn Off the Lights to Save Energy","Small Actions Make a Big Difference","We Can Protect Our Environment","Use Reusable Bags at the Market","Plant a Tree for Our Future","Conservation Is Everyone's Responsibility","We All Share This Planet"],
+        "6": ["We Separate Paper and Plastic","Recycling Protects Our Planet","Old Cans Can Become New Things","We Reduce Waste at Our School","Composting Helps the Soil","Buy Less Throw Away Less","Recycling Creates Less Pollution","Let's Leave a Better World"],
+        "7": ["The Mola Has Many Colors","It Represents Our Identity","Molas Are Made in Layers","The Reverse Applique Technique Is Special","Molas Show the Beauty of Kuna Culture","Artists Spend Weeks Making a Mola","Molas Are Sold around the World","I Am Proud of Panama's Art"],
+        "8": ["The Pollera Is Panama's National Dress","Men Wear the Montuno with Pride","Traditional Dress Is Part of Our Heritage","The Pollera Takes Months to Make","Festivals Celebrate Our Cultural Identity","Traditional Music Goes with Traditional Dress","We Pass These Traditions to Our Children","Our Culture Is a Treasure"]
       }
     };
 
@@ -427,6 +509,18 @@
         b.classList.add('active');
         state.speed = b.dataset.speed;
         if (state.status === 'playing') { stopLoop(); startLoop(); }
+      });
+      els.grade.addEventListener('change', () => {
+        const g = els.grade.value;
+        els.scenario.innerHTML = '<option value="">Escenario</option>';
+        if (g && SCENARIOS_META[g]) {
+          SCENARIOS_META[g].forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = String(s.n);
+            opt.textContent = `S${s.n}: ${s.title}`;
+            els.scenario.appendChild(opt);
+          });
+        }
       });
       els.loadCurr.onclick = () => {
         if (!els.grade.value || !els.scenario.value) return alert('Selecciona grado y escenario');
@@ -470,7 +564,10 @@
       state.targetSentence = sentence;
       
       els.target.textContent = sentence;
-      els.levelInd.textContent = `🌟 NIVEL ${state.level} / ${state.sentences.length}`;
+      const meta = SCENARIOS_META[state.grade]?.find(s => String(s.n) === String(state.scenario));
+      const themeIdx = (state.level - 1) < 4 ? 0 : 1;
+      const themeLabel = meta ? meta.themes[themeIdx] : '';
+      els.levelInd.textContent = `🌟 NIVEL ${state.level} / ${state.sentences.length}${themeLabel ? ' · ' + themeLabel : ''}`;
       els.success.classList.remove('show');
       els.cont.disabled = true;
       
