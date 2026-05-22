@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sentence-snake-v3';
+const CACHE_NAME = 'sentence-snake-v3.1';
 const urlsToCache = [
   './',
   './index.html',
